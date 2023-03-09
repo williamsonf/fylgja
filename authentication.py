@@ -75,7 +75,7 @@ class CsvAuth(object):
             for row in list(whitelist):
                 if str(row[message.source]) == str(message.user): #did our user match one of the ones in the source column?
                     if len(row['system'])  > 0: #if the user has a system identifier set for the bot to see
-                        message.context.append({'role' : 'system', 'content' : row['system']})
+                        message.user_info = {'role' : 'system', 'content' : row['system']}
                     message.tokens = int(row['limit'])
                     message.flag_verified()
                     return True

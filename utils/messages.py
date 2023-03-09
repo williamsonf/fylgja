@@ -27,6 +27,7 @@ class Message(object):
         verified (bool): whether the message comes from a verified user or not. usually, if this is false then the message is awaiting verification; unverified messages should be tossed
         state (bool): whether the message is an outgoing prompt awaiting a response from Fylgja, or if it is an outgoing response waiting to be displayed to the user. True = response, False = prompt
         df (pd.DataFrame): a dataframe containing the user's chat log
+        user_info (dict): a possible extra piece of context used to identify the user to the bot
         context (list): a list which will be used to construct the conversation's context
         tokens (int): maximum allowed tokens for this user
         
@@ -48,6 +49,7 @@ class Message(object):
         self.verified = 0 #boolean, either verified or not
         self.state = 0 #0 for prompt, 1 for response
         self.df = None #the pandas dataframe holding the chatlog
+        self.user_info = None
         self.context = []
         self.tokens = 0
         
@@ -80,7 +82,8 @@ class Message(object):
             self.tokens -= self.count_tokens(row[2])
             if self.tokens <= 0:
                 break
-            
+        
+        self.context.append(self.user_info)    
         self.context.append({'role' : 'system', 'content' : os.environ.get('SYSTEM_PROMPT')})
         self.context.reverse() #reverse it so that it's in the correct order
         
