@@ -1,6 +1,6 @@
 ![A portrait of a blue-skinned figure with feather-like horns.](fylgja_icon_transparent_nobg.png)
 
-Fylgja version 0.5.0
+Fylgja version 0.5.1
 ======
 
 Fylgja is a Python-based platform that enables authenticated users to communicate with customized OpenAI models through a modular front-end.
