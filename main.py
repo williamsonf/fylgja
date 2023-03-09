@@ -64,19 +64,25 @@ logging.info('fylgja.main.py - Modules imported')
 
 is_running = True
 
-def message_processor(queue: queue.Queue, authenticator, printers: dict) -> None:
+def message_processor(queue: queue.Queue, authenticator, ai: completion.ChatCompletion, printers: dict) -> None:
     global is_running
     logging.info('fylgja.main.py - Message processor starting!')
     while is_running:
         while not queue.empty():
             next_in_queue = queue.get()
-            if next_in_queue.verified != True:
-                authenticator(queue, next_in_queue)
-            elif next_in_queue.verified and next_in_queue.state == 0:
-                completion.ChatCompletion(queue, next_in_queue)
+            if next_in_queue.verified != True: #if we have not verified the message yet
+                if authenticator.validate(next_in_queue): #if it passes verification
+                    authenticator.construct_log(next_in_queue)
+                    authenticator.log_message(next_in_queue)
+                    authenticator.return_to_queue(next_in_queue)
+            elif next_in_queue.verified and next_in_queue.state == 0: #if it was verified, but has not yet received a response
+                next_in_queue.construct_context()
+                ai.get_response(next_in_queue)
+                if next_in_queue.state: #if we succeeded in acquiring a response
+                    authenticator.log_message(next_in_queue)
+                ai.return_to_queue(next_in_queue)
             elif next_in_queue.verified and next_in_queue.state:
-                sender = printers[next_in_queue.source]
-                sender(next_in_queue)
+                printers[next_in_queue.source](next_in_queue)
     logging.info('fylgja.main.py - Message processor ending.')
     
 def cmd_line(shell: frontends.cli.CommandLineInterface) -> None:
@@ -92,14 +98,14 @@ def cmd_line(shell: frontends.cli.CommandLineInterface) -> None:
                 
 if __name__ == '__main__':
     mainq = queue.Queue()
-    authenticator = authentication.CsvAuth
-    
+    authenticator = authentication.CsvAuth(mainq)
+    ai = completion.ChatCompletion(mainq, 'gpt-3.5-turbo')
     shell = frontends.cli.CommandLineInterface(mainq)
     discord = frontends.discord.DiscoBot(mainq)
     printers = {'cmd' : shell.post_msg,
                 'discord' : discord.post_msg}        
     
-    processor = threading.Thread(target=message_processor, args=[mainq, authenticator, printers])
+    processor = threading.Thread(target=message_processor, args=[mainq, authenticator, ai, printers])
     shell_run = threading.Thread(target=cmd_line, args=[shell])
         
     processor.start()

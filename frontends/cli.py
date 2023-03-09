@@ -13,15 +13,15 @@ class CommandLineInterface(object):
     '''
 
 
-    def __init__(self, queue: "Queue"):
+    def __init__(self, q: "Queue"):
         '''
         Constructor
         '''
-        self.queue = queue
+        self.q = q
         
     def receive_msg(self, prompt: str) -> None:
         msg = Message("cmd", 1, str(prompt))
-        self.queue.put(msg)
+        self.q.put(msg)
         
     def post_msg(self, response: Message) -> None:
         print(str(response.chat['content']))

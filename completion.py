@@ -24,51 +24,36 @@ class ChatCompletion(object):
         
     Attributes:
         queue (Queue): a Queue object (see python's standard model, queue), which the message should be deposited in
-        message (Message): a Message object (see utils.message) containing the prompt/chat log and associated metadata
+        model (str): The model that this ChatCompletion instance should utilize
         
     Methods:
         get_response(): calls the open ai api, returns just the part we care about
-        log_response(): appends the originating user's chat log with the response
         return_to_queue(): returns the message to the queue
     '''
 
-    def __init__(self, queue: 'Queue', message: 'Message') -> None:
+    def __init__(self, queue: 'Queue', model: str) -> None:
         '''
         Constructor
         '''
         logging.debug('fylgja.completion.py - Instantiating a new ChatCompletion class')
-        if message.verified:
-            self.queue = queue
-            self.message = message
-            self.model = os.environ.get('MODEL')
-            self.response = self.get_response()
-            self.log_response()
-            self.message.chat = self.response
-            self.message.flag_response()
-            self.return_to_queue()
-        else:
-            logging.critical("fylgja.completion.py - An unverified message has breached containment! (Src: {}, User: {})".format (self.message.source, str(self.message.user)))
+        self.queue = queue
+        self.model = model
         
-    def get_response(self) -> dict:
+    def get_response(self, message: "Message") -> None:
         logging.info("fylgja.completion.py - Calling Open AI for a chat completion.")
         response = openai.ChatCompletion.create(
             model= self.model,
-            messages= self.message.chat)
+            messages= message.context)
         logging.debug("Response received: {}".format(str(response)))
         
-        return response['choices'][0]['message']
-    
-    def log_response(self) -> None:
-        logged = [datetime.datetime.now(), self.response["role"], self.response["content"]]
-        with open(self.message.path, 'a', encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(logged)
-            
-    def return_to_queue(self) -> None:
+        message.chat = response['choices'][0]['message']
+        message.flag_response()
+                
+    def return_to_queue(self, message: "Message") -> None:
         '''
         Returns the message to the queue.
 
         This method puts the message back into the queue so that it can be processed again by another worker.
         '''
         logging.info("fylgja.completion.py - Returning a message to the queue")
-        self.queue.put(self.message)
+        self.queue.put(message)
