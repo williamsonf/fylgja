@@ -43,7 +43,8 @@ class ChatCompletion(object):
         logging.info("fylgja.completion.py - Calling Open AI for a chat completion.")
         response = openai.ChatCompletion.create(
             model= self.model,
-            messages= message.context)
+            messages= message.context,
+            frequency_penalty=1)
         logging.debug("Response received: {}".format(str(response)))
         
         message.chat = response['choices'][0]['message']

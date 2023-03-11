@@ -2,7 +2,7 @@
 fylgja/frontends/discord.py
 Copyright (c) 2023 Frederick T Williamson
 '''
-import logging, discord, dotenv, os, queue, asyncio
+import logging, discord, dotenv, os, queue, asyncio, re
 from utils.messages import Message
 dotenv.load_dotenv()
 
@@ -42,4 +42,13 @@ class DiscoBot(object):
         
     def post_msg(self, response: Message):
         user = asyncio.run_coroutine_threadsafe(self.client.fetch_user(response.user), self.client.loop).result()
-        asyncio.run_coroutine_threadsafe(user.send(response.chat['content']), self.client.loop)
+        if len(response.chat['content']) < 1900:
+            asyncio.run_coroutine_threadsafe(user.send(response.chat['content']), self.client.loop)
+        else:
+            split_txt = re.findall(r'(\b.{1,1900}[\.,;]? |.{1,1900}$)', response.chat['content'], flags=re.S)
+            split_q = queue.Queue()
+            for string in split_txt:
+                split_q.put(string)
+            while not split_q.empty():
+                next_out = split_q.get()
+                asyncio.run_coroutine_threadsafe(user.send(next_out), self.client.loop)
