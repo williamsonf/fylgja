@@ -72,6 +72,7 @@ class Message(object):
         #self.context.append({'role' : 'user', 'content' : str(self.chat)})
         
         #getting our usable token amount
+        self.tokens -= 3
         for message in self.context:
             self.tokens -= self.count_tokens(message['content'])
             
@@ -100,4 +101,4 @@ class Message(object):
             int: The number of tokens present in the given string
         '''
         encoding = tiktoken.get_encoding("cl100k_base")
-        return len(encoding.encode(msg))
+        return len(encoding.encode(msg))+4
