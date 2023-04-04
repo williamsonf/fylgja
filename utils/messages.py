@@ -30,6 +30,7 @@ class Message(object):
         user_info (dict): a possible extra piece of context used to identify the user to the bot
         context (list): a list which will be used to construct the conversation's context
         tokens (int): maximum allowed tokens for this user
+        tries (int): the number of times the message has been sent to open ai api and failed
         
     Methods:
         flag_verified(): Flips the verified attribute to True
@@ -52,6 +53,7 @@ class Message(object):
         self.user_info = None
         self.context = []
         self.tokens = 0
+        self.tries = 0
         
     def flag_verified(self) -> "Message":
         self.verified = 1
