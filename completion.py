@@ -51,7 +51,7 @@ class ChatCompletion(object):
                 message.chat = response['choices'][0]['message']
                 message.flag_response()
             except:
-                message.context = [{'role' : 'user', 'content' : str(message.chat)}]
+                message.context = []
                 message.tries += 1
         else:
             message.chat = '[Critical Error: Could not reach OpenAI API.]'
