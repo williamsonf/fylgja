@@ -41,7 +41,7 @@ class ChatCompletion(object):
         
     def get_response(self, message: "Message") -> None:
         logging.info("fylgja.completion.py - Calling Open AI for a chat completion.")
-        if message.tries <= 3:
+        if message.tries < 3:
             try:
                 response = openai.ChatCompletion.create(
                     model= self.model,
@@ -51,6 +51,7 @@ class ChatCompletion(object):
                 message.chat = response['choices'][0]['message']
                 message.flag_response()
             except:
+                message.context = [{'role' : 'user', 'content' : str(message.chat)}]
                 message.tries += 1
         else:
             message.chat = '[Critical Error: Could not reach OpenAI API.]'
