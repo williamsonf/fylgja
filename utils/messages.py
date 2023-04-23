@@ -10,7 +10,7 @@ Classes:
 import logging, tiktoken, os
 import pandas as pd
 
-logging.info('fylgja.utils.messages.py - Loading utils.messages.py')
+logging.info(f'Loading utils.messages.py')
 
 class Message(object):
     '''
@@ -43,7 +43,7 @@ class Message(object):
         '''
         Constructor
         '''
-        logging.debug('fylgja.utils.messages.py - Instantiating a new Message class')
+        logging.debug(f'Instantiating a new Message class')
         self.source = source
         self.user = user
         self.chat = chat
@@ -57,12 +57,12 @@ class Message(object):
         
     def flag_verified(self) -> "Message":
         self.verified = 1
-        logging.info("fylgja.utils.messages.py - Message flagged verified. (Src: {}, User: {})".format (self.source, str(self.user)))
+        logging.info(f"Message flagged verified. (Src: {self.source}, User: {self.user})")
         return self
         
     def flag_response(self) -> "Message":
         self.state = 1
-        logging.info("fylgja.utils.messages.py - Message flagged response. (Src: {}, User: {})".format(self.source, str(self.user)))
+        logging.info(f"Message flagged response. (Src: {self.source}, User: {self.user})")
         return self
     
     def construct_context(self) -> None:

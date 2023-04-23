@@ -2,12 +2,13 @@
 fylgja/frontends/cli.py
 Copyright (c) 2023 Frederick T Williamson
 '''
-import logging
+import logging, os, sys
 from utils.messages import Message
+from .frontends import Frontend
 
-logging.info('fylgja.frontends.cli.py - Loading frontends.cli.py')
+logging.info(f'Loading frontends.cli.py')
 
-class CommandLineInterface(object):
+class CommandLineInterface(Frontend):
     '''
     classdocs
     '''
@@ -17,18 +18,29 @@ class CommandLineInterface(object):
         '''
         Constructor
         '''
-        self.q = q
+        super().__init__(q)
         
-    def receive_msg(self, prompt: str) -> None:
-        msg = Message("cmd", 1, str(prompt))
-        self.q.put(msg)
+    def receive_msg(self, prompt: str) -> bool:
+        try:
+            msg = Message("cmd", 1, str(prompt))
+            self.q.put(msg)
+        except:
+            return False
         
     def post_msg(self, response: Message) -> None:
-        print(str(response.chat['content']))
+        try:
+            print(str(response.chat['content']))
+        except:
+            return False
         
     def start(self, is_running: bool) -> None:
-        logging.info("fylgja.frontends.cli.py - Starting a CommandLineInterface listener!")
-        while is_running:
-            u_in = input("")
-            self.receive_msg(u_in)
-        logging.info("fylgja.frontends.cli.py - CommandLineInterface listener is ending!")
+        logging.info(f"Starting a CommandLineInterface listener!")
+        try:
+            while is_running:
+                u_in = input("")
+                self.receive_msg(u_in)
+        except KeyboardInterrupt:
+            sys.exit()
+        except:
+            return False
+        logging.info(f"CommandLineInterface listener is ending!")

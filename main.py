@@ -47,27 +47,28 @@ verified
 
 @author: Fred Williamson
 '''
-import logging, datetime
-logging.basicConfig(filename="logs/" + str(datetime.date.today()) + ".log", encoding='utf-8', level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-#logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+import logging, datetime, os
+log_format=f'[%(asctime)s] [%(levelname)-8s] {os.path.abspath(__file__)} - %(message)s'
+#logging.basicConfig(filename="logs/" + str(datetime.date.today()) + ".log", encoding='utf-8', level=logging.INFO, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
 
-logging.info('fylgja.main.py - Importing modules to main.py')
-import queue, os, threading
-logging.debug('fylgja.main.py - queue, os, threading')
+logging.info(f'Importing modules to main.py')
+import queue, threading
+logging.debug(f'queue, os, threading')
 import completion, authentication, utils.messages
 import frontends.cli, frontends.discord
 from dotenv import load_dotenv
-logging.debug('fylgja.main.py - dotenv.load_dotenv')
+logging.debug(f'dotenv.load_dotenv')
 load_dotenv()
-logging.debug('fylgja.main.py - environmental variables set')
-logging.info('fylgja.main.py - Modules imported')
+logging.debug(f'environmental variables set')
+logging.info(f'Modules imported')
 
-is_running = True
+IS_RUNNING = True
 
 def message_processor(queue: queue.Queue, authenticator, ai: completion.ChatCompletion, printers: dict) -> None:
-    global is_running
-    logging.info('fylgja.main.py - Message processor starting!')
-    while is_running:
+    global IS_RUNNING
+    logging.info(f'Message processor starting!')
+    while IS_RUNNING:
         while not queue.empty():
             next_in_queue = queue.get()
             if next_in_queue.verified != True: #if we have not verified the message yet
@@ -83,31 +84,27 @@ def message_processor(queue: queue.Queue, authenticator, ai: completion.ChatComp
                 ai.return_to_queue(next_in_queue)
             elif next_in_queue.verified and next_in_queue.state:
                 printers[next_in_queue.source](next_in_queue)
-    logging.info('fylgja.main.py - Message processor ending.')
-    
-def cmd_line(shell: frontends.cli.CommandLineInterface) -> None:
-    global is_running
-    logging.info('fylgja.main.py - Starting the command line listener!')
-    while is_running:
-        u_in = input("")
-        if u_in != 'exit':
-            shell.receive_msg(u_in)
-        else:
-            is_running = False
-    logging.info('fylgja.main.py - Closing the command line listener.')
-                
+    logging.info(f'Message processor ending.')
+                    
 if __name__ == '__main__':
     mainq = queue.Queue()
     authenticator = authentication.CsvAuth(mainq)
     ai = completion.ChatCompletion(mainq, 'gpt-3.5-turbo')
     shell = frontends.cli.CommandLineInterface(mainq)
     discord = frontends.discord.DiscoBot(mainq)
+    
+    frontends = [discord, shell]
     printers = {'cmd' : shell.post_msg,
                 'discord' : discord.post_msg}        
     
     processor = threading.Thread(target=message_processor, args=[mainq, authenticator, ai, printers])
-    shell_run = threading.Thread(target=cmd_line, args=[shell])
         
     processor.start()
-    shell_run.start()
-    discord.run_bot()
+    
+    for front in frontends:
+        thread = threading.Thread(target=front.start, args=[IS_RUNNING])
+        try:
+            thread.start()
+            logging.info(f'{front.__class__.__name__} has started.')
+        except:
+            logging.critical(f'{front.__class__.__name__} has failed to load!')

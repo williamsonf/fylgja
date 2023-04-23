@@ -22,7 +22,7 @@ import pandas as pd
 
 dotenv.load_dotenv()
 
-logging.info('fylgja.authentication.py - Loading authentication.py')
+logging.info(f'Loading authentication.py')
 
 class CsvAuth(object):
     '''
@@ -53,7 +53,7 @@ class CsvAuth(object):
     def __init__(self, queue: 'Queue') -> None:
         '''
         '''
-        logging.debug('fylgja.authentication.py - Instantiating a new CsvAuth class')
+        logging.debug(f'Instantiating a new CsvAuth class')
         self.queue = queue
         self.whitelist = os.environ.get('CSV_WHITELIST')
         
@@ -80,7 +80,7 @@ class CsvAuth(object):
                     message.flag_verified()
                     return True
             else:
-                logging.info('fylgja.authentication.py - Message Authentication failed! Type: CSV, Source: {}, User ID: {}'.format(str(self.message.source), str(self.message.user)))
+                logging.info(f'Message Authentication failed! Type: CSV, Source: {self.message.source}, User ID: {self.message.user}')
                 return False
     
     def construct_log(self, message: "Message") -> pd.DataFrame:
@@ -102,7 +102,7 @@ class CsvAuth(object):
         exist, it is created and an empty DataFrame is returned.
         '''
         path = self.get_logpath(message)        
-        logging.debug("fylgja.authentication.py - Constructing chatlogs from path {}".format(path))
+        logging.debug(f"Constructing chatlogs from path {path}")
         
         df = None
         if path.is_file():
@@ -113,7 +113,7 @@ class CsvAuth(object):
             df = df.sort_values(by='timestamp', ascending=False)
                             
         elif not path.is_file():
-            logging.info('fylgja.authentication.py - No file {} exists. Creating one now.'.format(str(path)))
+            logging.info(f'No file {path} exists. Creating one now.')
             #we create an empty file
             with open(path, 'w', encoding="utf-8") as _:
                 pass
@@ -128,7 +128,7 @@ class CsvAuth(object):
 
         This method puts the message back into the queue so that it can be processed again by another worker.
         '''
-        logging.info("fylgja.authentication.py - Returning a message to the queue")
+        logging.info(f"Returning a message to the queue")
         self.queue.put(message)
         
     def log_message(self, message: "Message") -> None:
@@ -149,7 +149,7 @@ class CsvAuth(object):
                 role = 'assistant'
                 content = message.chat['content']
             else:
-                logging.critical('fylgja.authentication.py - A verified message is neither a prompt or a response! User: {}, Src: {}, Msg: {}'.format(str(message.user), str(message.source), str(message.chat)))
+                logging.critical(f'A verified message is neither a prompt or a response! User: {message.user}, Src: {message.source}, Msg: {message.chat}')
             
         if role and content: #if both fields have been filled, we can save the chat field
             new_row = {'timestamp' : datetime.datetime.now(), 'role' : role, 'content' : content}

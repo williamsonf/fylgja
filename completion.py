@@ -8,7 +8,7 @@ import openai, datetime, os, dotenv, logging, csv
 
 dotenv.load_dotenv()
 
-logging.info('fylgja.completion.py - Loading completion.py')
+logging.info(f'Loading completion.py')
 openai.organization = os.environ.get('OPENAI_ORG')
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
@@ -35,12 +35,12 @@ class ChatCompletion(object):
         '''
         Constructor
         '''
-        logging.debug('fylgja.completion.py - Instantiating a new ChatCompletion class')
+        logging.debug(f'Instantiating a new ChatCompletion class')
         self.queue = queue
         self.model = model
         
     def get_response(self, message: "Message") -> None:
-        logging.info("fylgja.completion.py - Calling Open AI for a chat completion.")
+        logging.info(f"Calling Open AI for a chat completion.")
         if message.tries < 3:
             try:
                 response = openai.ChatCompletion.create(
@@ -63,5 +63,5 @@ class ChatCompletion(object):
 
         This method puts the message back into the queue so that it can be processed again by another worker.
         '''
-        logging.info("fylgja.completion.py - Returning a message to the queue")
+        logging.info(f"Returning a message to the queue")
         self.queue.put(message)
