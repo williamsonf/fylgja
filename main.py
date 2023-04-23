@@ -47,14 +47,14 @@ verified
 
 @author: Fred Williamson
 '''
-import logging, datetime, os
-log_format=f'[%(asctime)s] [%(levelname)-8s] {os.path.abspath(__file__)} - %(message)s'
+import logging, datetime
+log_format=f'[%(asctime)s] [%(levelname)-8s] %(message)s'
 logging.basicConfig(filename="logs/" + str(datetime.date.today()) + ".log", encoding='utf-8', level=logging.INFO, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
 #logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
 
 logging.info(f'Importing modules to main.py')
 import queue, threading
-logging.debug(f'queue, os, threading')
+logging.debug(f'queue, threading')
 import completion, authentication, utils.messages
 import frontends.cli, frontends.discord
 from dotenv import load_dotenv
@@ -63,12 +63,9 @@ load_dotenv()
 logging.debug(f'environmental variables set')
 logging.info(f'Modules imported')
 
-IS_RUNNING = True
-
 def message_processor(queue: queue.Queue, authenticator, ai: completion.ChatCompletion, printers: dict) -> None:
-    global IS_RUNNING
     logging.info(f'Message processor starting!')
-    while IS_RUNNING:
+    while True:
         while not queue.empty():
             next_in_queue = queue.get()
             if next_in_queue.verified != True: #if we have not verified the message yet
@@ -93,7 +90,7 @@ if __name__ == '__main__':
     shell = frontends.cli.CommandLineInterface(mainq)
     discord = frontends.discord.DiscoBot(mainq)
     
-    frontends = [discord, shell]
+    frontends = [discord, threading.Thread(target=shell)]
     printers = {'cmd' : shell.post_msg,
                 'discord' : discord.post_msg}        
     
@@ -102,9 +99,7 @@ if __name__ == '__main__':
     processor.start()
     
     for front in frontends:
-        thread = threading.Thread(target=front.start, args=[IS_RUNNING])
         try:
-            thread.start()
-            logging.info(f'{front.__class__.__name__} has started.')
+            front.start()
         except:
             logging.critical(f'{front.__class__.__name__} has failed to load!')

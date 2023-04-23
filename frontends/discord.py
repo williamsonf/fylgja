@@ -43,17 +43,12 @@ class DiscoBot(Frontend):
         except:
             return False
                                 
-    def start(self, is_running) -> bool:
+    def start(self):
         logging.info(f'Starting discord bot.')
-        if is_running:
-            try:
-                self.client.run(os.environ.get('DISCORD_API_KEY'))
-                return True
-            except:
-                logging.critical(f'Discord bot failed to start.')
-                return False
-        else:
-            return False
+        try:
+            self.client.run(os.environ.get('DISCORD_API_KEY'))
+        except:
+            logging.critical(f'Discord bot failed to start.')
         
     def post_msg(self, response: Message) -> bool:
         try:

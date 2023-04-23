@@ -33,10 +33,10 @@ class CommandLineInterface(Frontend):
         except:
             return False
         
-    def start(self, is_running: bool) -> None:
+    def start(self) -> None:
         logging.info(f"Starting a CommandLineInterface listener!")
         try:
-            while is_running:
+            while True:
                 u_in = input("")
                 self.receive_msg(u_in)
         except KeyboardInterrupt:
