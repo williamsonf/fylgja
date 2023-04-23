@@ -49,8 +49,8 @@ verified
 '''
 import logging, datetime, os
 log_format=f'[%(asctime)s] [%(levelname)-8s] {os.path.abspath(__file__)} - %(message)s'
-#logging.basicConfig(filename="logs/" + str(datetime.date.today()) + ".log", encoding='utf-8', level=logging.INFO, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
-logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(filename="logs/" + str(datetime.date.today()) + ".log", encoding='utf-8', level=logging.INFO, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
+#logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
 
 logging.info(f'Importing modules to main.py')
 import queue, threading
